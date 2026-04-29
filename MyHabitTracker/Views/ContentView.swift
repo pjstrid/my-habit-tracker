@@ -11,6 +11,7 @@ struct MenuItem: Identifiable {
     let id: UUID = UUID()
     let iconName: String
     let name: String
+    let todaysProgress: String
 }
 
 struct ContentView: View {
@@ -18,15 +19,18 @@ struct ContentView: View {
     @State private var testList: [MenuItem] = [
         MenuItem(
             iconName: "shoeprints.fill",
-            name: "Steps"
+            name: "Steps",
+            todaysProgress: "10 000 steps"
         ),
         MenuItem(
             iconName: "book.fill",
-            name: "Reading"
+            name: "Reading",
+            todaysProgress: "25 pages"
         ),
         MenuItem(
             iconName: "carrot.fill",
-            name: "Fruits and Veggies"
+            name: "Fruits and Veggies",
+            todaysProgress: "3 pieces"
         ),
     ]
 
@@ -34,6 +38,7 @@ struct ContentView: View {
         Text("My Habit Tracker")
             .font(.title)
             .bold()
+        
         NavigationStack {
             ZStack {
                 LinearGradient(
@@ -53,21 +58,27 @@ struct ContentView: View {
                         } label: {
                             HStack {
                                 Image(systemName: menuItem.iconName)
-                                    .font(.system(size: 20))
-                                    .frame(width: 40, height: 40)
+                                    .font(.system(size: 22))
+                                    .frame(width: 44, height: 44)
                                     .background(.green.opacity(0.1))
                                     .clipShape(
-                                        RoundedRectangle(cornerRadius: 16)
+                                        RoundedRectangle(cornerRadius: 12)
                                     )
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 6) {
                                     Text(menuItem.name)
                                         .font(.title3)
+                                        .fontDesign(.rounded)
+                                        .bold()
+                                    Text("Today: \(menuItem.todaysProgress)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
                                         .bold()
                                 }
                             }
                         }
                     }
                 }
+                
                 Button {
 
                 } label: {
@@ -79,6 +90,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.glass)
                 .font(Font.title2.bold())
+                
             }
         }
         .scrollContentBackground(.hidden)
