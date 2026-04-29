@@ -28,3 +28,6 @@ Pods/
 # Miljövariabler (För API-nycklar i framtiden)
 .env
 *.plist
+
+GoogleService-Info.plist
+GoogleService-Info*.plist
