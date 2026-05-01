@@ -7,94 +7,153 @@
 
 import SwiftUI
 
-struct MenuItem: Identifiable {
-    let id: UUID = UUID()
-    let iconName: String
-    let name: String
-    let todaysProgress: String
-}
+//struct MenuItem: Identifiable {
+//    let id: UUID = UUID()
+//    let iconName: String
+//    let name: String
+//    let todaysProgress: String
+//}
 
 struct ContentView: View {
 
-    @State private var testList: [MenuItem] = [
-        MenuItem(
-            iconName: "shoeprints.fill",
-            name: "Steps",
-            todaysProgress: "10 000 steps"
-        ),
-        MenuItem(
-            iconName: "book.fill",
-            name: "Reading",
-            todaysProgress: "25 pages"
-        ),
-        MenuItem(
-            iconName: "carrot.fill",
-            name: "Fruits and Veggies",
-            todaysProgress: "3 pieces"
-        ),
+    @State private var habits: [Habit] = [
+        //        MenuItem(
+        //            iconName: "shoeprints.fill",
+        //            name: "Steps",
+        //            todaysProgress: "10 000 steps"
+        //        ),
+        //        MenuItem(
+        //            iconName: "book.fill",
+        //            name: "Reading",
+        //            todaysProgress: "25 pages"
+        //        ),
+        //        MenuItem(
+        //            iconName: "carrot.fill",
+        //            name: "Fruits and Veggies",
+        //            todaysProgress: "3 pieces"
+        //        ),
     ]
 
+    @State private var newHabitName = ""
+    @State private var newHabitCount = ""
+
+    private let firebase = FirebaseManager()
+
     var body: some View {
-        Text("My Habit Tracker")
-            .font(.title)
-            .bold()
-        
+        //        Text("My Habit Tracker")
+        //            .font(.title)
+        //            .bold()
+
         NavigationStack {
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(.black),
-                        Color(red: 0.1, green: 0.15, blue: 0.1),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+            VStack {
+                ZStack {
+                    LinearGradient(
+                        colors: [
+                            Color(.black),
+                            Color(red: 0.1, green: 0.15, blue: 0.1),
+                        ],
+                        startPoint: .bottom,
+                        endPoint: .topTrailing
+                    )
+                    .ignoresSafeArea()
 
-                List {
-                    ForEach(testList) { menuItem in
-                        NavigationLink {
-
-                        } label: {
-                            HStack {
-                                Image(systemName: menuItem.iconName)
-                                    .font(.system(size: 22))
-                                    .frame(width: 44, height: 44)
-                                    .background(.green.opacity(0.1))
-                                    .clipShape(
-                                        RoundedRectangle(cornerRadius: 12)
+                    List {
+                        Section {
+                            if habits.isEmpty {
+                                ContentUnavailableView(
+                                    "No tracked habits yet",
+                                    systemImage: "xmark.circle",
+                                    description: Text(
+                                        "Add a tracked habit to get started!"
                                     )
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(menuItem.name)
-                                        .font(.title3)
-                                        .fontDesign(.rounded)
-                                        .bold()
-                                    Text("Today: \(menuItem.todaysProgress)")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .bold()
+                                )
+                            } else {
+                                ForEach(habits) { habit in
+
+                                    HStack {
+                                        //                                Image(systemName: menuItem.iconName)
+                                        //                                    .font(.system(size: 22))
+                                        //                                    .frame(width: 44, height: 44)
+                                        //                                    .background(.green.opacity(0.1))
+                                        //                                    .clipShape(
+                                        //                                        RoundedRectangle(cornerRadius: 12)
+                                        //                                    )
+                                        VStack(alignment: .leading, spacing: 6)
+                                        {
+                                            Text(habit.name)
+                                                .font(.title3)
+                                                .fontDesign(.rounded)
+                                                .bold()
+                                            Text("Today: \(habit.count)")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                                .bold()
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                
-                Button {
+                Form {
+                    Section {
+                        TextField("Habit", text: $newHabitName)
+                        TextField("Count", text: $newHabitCount)
 
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
+                        HStack {
+                            Spacer()
+                            Button {
+                                Task { await saveNewHabit() }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Save")
+                                        .padding(10)
+                                }
+                            }
+                            .disabled(
+                                newHabitName.trimmingCharacters(
+                                    in: .whitespacesAndNewlines
+                                ).isEmpty
+                            )
+                            .disabled(
+                                newHabitCount.trimmingCharacters(
+                                    in: .whitespacesAndNewlines
+                                ).isEmpty
+                            )
+                            .buttonStyle(.glass)
+                            .font(Font.title3.bold())
+                            Spacer()
+                        }
+                    } header: {
                         Text("Add progress")
-                            .padding(10)
                     }
                 }
-                .buttonStyle(.glass)
-                .font(Font.title2.bold())
-                
+            }
+            .navigationTitle("My Habit Tracker")
+            .task {
+                await reloadHabits()
             }
         }
         .scrollContentBackground(.hidden)
     }
+
+    private func reloadHabits() async {
+        habits = await firebase.fetchHabits()
+    }
+
+    private func saveNewHabit() async {
+
+        guard !newHabitName.isEmpty else { return }
+
+        guard !newHabitCount.isEmpty else { return }
+
+        await firebase.saveHabit(name: newHabitName, count: newHabitCount)
+        newHabitName = ""
+        newHabitCount = ""
+        await reloadHabits()
+    }
+
 }
 
 #Preview {

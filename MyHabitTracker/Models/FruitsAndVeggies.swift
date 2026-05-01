@@ -11,5 +11,5 @@ struct FruitsAndVeggies: Identifiable {
     let id: UUID
     let date: Date
     let count: Int
-    let type: String
+//    let type: String
 }
