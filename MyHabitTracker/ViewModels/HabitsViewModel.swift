@@ -13,8 +13,3 @@ class HabitsViewModel {
     
     var habits: [Habit] = []
 }
-
-//func addHabit(name: String, date: Date, count: Int) -> Habit {
-//    Habit(id: , name: name, date: date, count: count)
-//    
-//}

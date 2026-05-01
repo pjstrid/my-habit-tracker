@@ -13,12 +13,8 @@ final class FirebaseManager {
     var habits: [Habit] = []
     var errorMessage: String?
 
-    // TODO: Lägg till en `private let db`-property som pekar på Firestore.
-    // Rekommendation: `private let db = Firestore.firestore()` — se README ("Var ska db ligga?").
-
     private let db = Firestore.firestore()
 
-    /// Hämtar alla dokument i kollektionen `notes` och gör om dem till `CloudNote`.
     func fetchHabits() async -> [Habit] {
         do {
             let snapshot = try await db.collection("habits").getDocuments()
@@ -26,10 +22,18 @@ final class FirebaseManager {
             let habits = snapshot.documents.compactMap { doc -> Habit? in
                 let data = doc.data()
                 guard let name = data["name"] as? String else { return nil }
-//                guard let date = data["date"] as? Date else { return nil }
+                //                guard let date = data["date"] as? Date else { return nil }
                 guard let count = data["count"] as? String else { return nil }
+                guard let isChecked = data["isChecked"] as? Bool else {
+                    return nil
+                }
 
-                return Habit(id: doc.documentID, name: name, /*date: date,*/ count: count)
+                return Habit(
+                    id: doc.documentID,
+                    name: name,
+                    count: count,
+                    isChecked: isChecked
+                )
             }
             self.habits = habits
             return habits
@@ -39,16 +43,15 @@ final class FirebaseManager {
                 "Kunde inte hämta: \(error.localizedDescription)"
             return []
         }
-
     }
-
-    /// Sparar en ny anteckning som ett nytt dokument i kollektionen `notes`.
-    func saveHabit(name: String, count: String) async {
+    
+    func saveHabit(name: String, count: String, isChecked: Bool = false) async {
 
         let data: [String: Any] = [
             "name": name,
             "count": count,
-            "date": Timestamp(date: Date())
+            "isChecked": isChecked,
+            "date": Timestamp(date: Date()),
         ]
         do {
             _ = try await db.collection("habits").addDocument(data: data)
@@ -58,4 +61,3 @@ final class FirebaseManager {
         }
     }
 }
-

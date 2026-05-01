@@ -7,32 +7,9 @@
 
 import SwiftUI
 
-//struct MenuItem: Identifiable {
-//    let id: UUID = UUID()
-//    let iconName: String
-//    let name: String
-//    let todaysProgress: String
-//}
-
 struct ContentView: View {
 
-    @State private var habits: [Habit] = [
-        //        MenuItem(
-        //            iconName: "shoeprints.fill",
-        //            name: "Steps",
-        //            todaysProgress: "10 000 steps"
-        //        ),
-        //        MenuItem(
-        //            iconName: "book.fill",
-        //            name: "Reading",
-        //            todaysProgress: "25 pages"
-        //        ),
-        //        MenuItem(
-        //            iconName: "carrot.fill",
-        //            name: "Fruits and Veggies",
-        //            todaysProgress: "3 pieces"
-        //        ),
-    ]
+    @State private var habits: [Habit] = []
 
     @State private var newHabitName = ""
     @State private var newHabitCount = ""
@@ -40,9 +17,6 @@ struct ContentView: View {
     private let firebase = FirebaseManager()
 
     var body: some View {
-        //        Text("My Habit Tracker")
-        //            .font(.title)
-        //            .bold()
 
         NavigationStack {
             VStack {
@@ -68,16 +42,9 @@ struct ContentView: View {
                                     )
                                 )
                             } else {
-                                ForEach(habits) { habit in
+                                ForEach($habits) { $habit in
 
                                     HStack {
-                                        //                                Image(systemName: menuItem.iconName)
-                                        //                                    .font(.system(size: 22))
-                                        //                                    .frame(width: 44, height: 44)
-                                        //                                    .background(.green.opacity(0.1))
-                                        //                                    .clipShape(
-                                        //                                        RoundedRectangle(cornerRadius: 12)
-                                        //                                    )
                                         VStack(alignment: .leading, spacing: 6)
                                         {
                                             Text(habit.name)
@@ -89,12 +56,31 @@ struct ContentView: View {
                                                 .foregroundStyle(.secondary)
                                                 .bold()
                                         }
+                                        Spacer()
+                                        Button {
+                                            habit.isChecked.toggle()
+                                        } label: {
+                                            Image(
+                                                systemName: habit.isChecked
+                                                    ? "checkmark.circle.fill"
+                                                    : "circle"
+                                            )
+                                            .font(.system(size: 26))
+                                            .foregroundColor(
+                                                habit.isChecked
+                                                    ? .green.opacity(0.6)
+                                                    : .gray
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+
                                     }
                                 }
                             }
                         }
                     }
                 }
+
                 Form {
                     Section {
                         TextField("Habit", text: $newHabitName)
