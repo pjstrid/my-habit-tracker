@@ -10,10 +10,8 @@ import SwiftUI
 struct ContentView: View {
 
     @State private var habits: [Habit] = []
-
-    @State private var newHabitName = ""
-    @State private var newHabitGoal = ""
-    @State private var newHabitUnit = ""
+    
+    @State private var showingAddHabitSheet = false
 
 
     private let firebase = FirebaseManager()
@@ -104,42 +102,20 @@ struct ContentView: View {
                             }
                         }
                     }
-                }
-
-                Form {
-                    Section {
-                        TextField("Habit", text: $newHabitName)
-                        TextField("Goal", text: $newHabitGoal)
-                        TextField("Unit, e.g. 'steps', 'pages'", text: $newHabitUnit)
-
-
-                        HStack {
-                            Spacer()
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
                             Button {
-                                Task { await saveNewHabit() }
+                                showingAddHabitSheet = true
                             } label: {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Save")
-                                        .padding(10)
-                                }
+                                Image(systemName: "plus")
                             }
-                            .disabled(
-                                newHabitName.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                            )
-                            .disabled(
-                                newHabitGoal.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                            )
-                            .buttonStyle(.glass)
-                            .font(Font.title3.bold())
-                            Spacer()
                         }
-                    } header: {
-                        Text("Add new Habit")
+                    }
+                    .sheet(isPresented: $showingAddHabitSheet) {
+                        AddHabitView(
+                            habits: $habits,
+                            isPresented: $showingAddHabitSheet
+                        )
                     }
                 }
             }
@@ -153,21 +129,6 @@ struct ContentView: View {
 
     private func reloadHabits() async {
         habits = await firebase.fetchHabits()
-    }
-
-    private func saveNewHabit() async {
-
-        guard !newHabitName.isEmpty else { return }
-
-        guard !newHabitGoal.isEmpty else { return }
-
-        guard !newHabitUnit.isEmpty else { return }
-        
-        await firebase.saveHabit(name: newHabitName, goal: newHabitGoal, unit: newHabitUnit)
-        newHabitName = ""
-        newHabitGoal = ""
-        newHabitUnit = ""
-        await reloadHabits()
     }
 
 }
