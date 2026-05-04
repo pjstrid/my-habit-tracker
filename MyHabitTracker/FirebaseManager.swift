@@ -23,16 +23,20 @@ final class FirebaseManager {
                 let data = doc.data()
                 guard let name = data["name"] as? String else { return nil }
                 //                guard let date = data["date"] as? Date else { return nil }
-                guard let count = data["count"] as? String else { return nil }
+                guard let goal = data["goal"] as? String else { return nil }
                 guard let isChecked = data["isChecked"] as? Bool else {
+                    return nil
+                }
+                guard let unit = data["unit"] as? String else {
                     return nil
                 }
 
                 return Habit(
                     id: doc.documentID,
                     name: name,
-                    count: count,
-                    isChecked: isChecked
+                    goal: goal,
+                    isChecked: isChecked,
+                    unit: unit
                 )
             }
             self.habits = habits
@@ -45,13 +49,14 @@ final class FirebaseManager {
         }
     }
     
-    func saveHabit(name: String, count: String, isChecked: Bool = false) async {
+    func saveHabit(name: String, goal: String, unit: String, isChecked: Bool = false) async {
 
         let data: [String: Any] = [
             "name": name,
-            "count": count,
+            "goal": goal,
             "isChecked": isChecked,
             "date": Timestamp(date: Date()),
+            "unit": unit
         ]
         do {
             _ = try await db.collection("habits").addDocument(data: data)

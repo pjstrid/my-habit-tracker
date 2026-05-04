@@ -12,7 +12,9 @@ struct ContentView: View {
     @State private var habits: [Habit] = []
 
     @State private var newHabitName = ""
-    @State private var newHabitCount = ""
+    @State private var newHabitGoal = ""
+    @State private var newHabitUnit = ""
+
 
     private let firebase = FirebaseManager()
 
@@ -24,7 +26,7 @@ struct ContentView: View {
                     LinearGradient(
                         colors: [
                             Color(.black),
-                            Color(red: 0.1, green: 0.15, blue: 0.1),
+                            Color(red: 0.1, green: 0.20, blue: 0.1),
                         ],
                         startPoint: .bottom,
                         endPoint: .topTrailing
@@ -51,29 +53,52 @@ struct ContentView: View {
                                                 .font(.title3)
                                                 .fontDesign(.rounded)
                                                 .bold()
-                                            Text("Today: \(habit.count)")
+                                            Text("Goal: \(habit.goal) \(habit.unit)")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.secondary)
                                                 .bold()
                                         }
+                                        
                                         Spacer()
-                                        Button {
-                                            habit.isChecked.toggle()
-                                        } label: {
-                                            Image(
-                                                systemName: habit.isChecked
-                                                    ? "checkmark.circle.fill"
-                                                    : "circle"
-                                            )
-                                            .font(.system(size: 26))
-                                            .foregroundColor(
-                                                habit.isChecked
-                                                    ? .green.opacity(0.6)
-                                                    : .gray
-                                            )
+                                        
+                                        HStack(spacing: 12) {
+                                            VStack() {
+                                                Text("Today")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(.secondary)
+                                                    .bold()
+                                                Spacer()
+                                                Button {
+                                                    habit.isChecked.toggle()
+                                                } label: {
+                                                    Image(
+                                                        systemName: habit.isChecked
+                                                        ? "checkmark.circle.fill"
+                                                        : "circle"
+                                                    )
+                                                    .font(.system(size: 26))
+                                                    .foregroundColor(
+                                                        habit.isChecked
+                                                        ? .green.opacity(0.6)
+                                                        : .gray
+                                                    )
+                                                }
+                                                .buttonStyle(.plain)
+                                            }
+                                            
+                                            VStack() {
+                                                Text("Streak")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(.secondary)
+                                                    .bold()
+                                                Spacer()
+                                                Text("🔥3")
+                                                    .font(.title3)
+                                                    .fontDesign(.rounded)
+                                                    .bold()
+                                                
+                                            }
                                         }
-                                        .buttonStyle(.plain)
-
                                     }
                                 }
                             }
@@ -84,7 +109,9 @@ struct ContentView: View {
                 Form {
                     Section {
                         TextField("Habit", text: $newHabitName)
-                        TextField("Count", text: $newHabitCount)
+                        TextField("Goal", text: $newHabitGoal)
+                        TextField("Unit, e.g. 'steps', 'pages'", text: $newHabitUnit)
+
 
                         HStack {
                             Spacer()
@@ -103,7 +130,7 @@ struct ContentView: View {
                                 ).isEmpty
                             )
                             .disabled(
-                                newHabitCount.trimmingCharacters(
+                                newHabitGoal.trimmingCharacters(
                                     in: .whitespacesAndNewlines
                                 ).isEmpty
                             )
@@ -112,7 +139,7 @@ struct ContentView: View {
                             Spacer()
                         }
                     } header: {
-                        Text("Add progress")
+                        Text("Add new Habit")
                     }
                 }
             }
@@ -132,11 +159,14 @@ struct ContentView: View {
 
         guard !newHabitName.isEmpty else { return }
 
-        guard !newHabitCount.isEmpty else { return }
+        guard !newHabitGoal.isEmpty else { return }
 
-        await firebase.saveHabit(name: newHabitName, count: newHabitCount)
+        guard !newHabitUnit.isEmpty else { return }
+        
+        await firebase.saveHabit(name: newHabitName, goal: newHabitGoal, unit: newHabitUnit)
         newHabitName = ""
-        newHabitCount = ""
+        newHabitGoal = ""
+        newHabitUnit = ""
         await reloadHabits()
     }
 

@@ -11,6 +11,7 @@ struct Habit: Identifiable, Codable {
     @DocumentID var id: String?
     var name: String
 //    var date: Date
-    var count: String
+    var goal: String
     var isChecked: Bool
+    var unit: String
 }
