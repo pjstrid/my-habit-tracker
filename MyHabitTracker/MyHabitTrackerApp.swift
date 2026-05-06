@@ -17,7 +17,7 @@ struct MyHabitTrackerApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(viewModel: HabitsViewModel())
         }
     }
 }

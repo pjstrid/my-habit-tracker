@@ -9,12 +9,9 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @State private var habits: [Habit] = []
-    
     @State private var showingAddHabitSheet = false
 
-
-    private let firebase = FirebaseManager()
+    @Bindable var viewModel: HabitsViewModel
 
     var body: some View {
 
@@ -24,7 +21,7 @@ struct ContentView: View {
                     LinearGradient(
                         colors: [
                             Color(.black),
-                            Color(red: 0.1, green: 0.20, blue: 0.1),
+                            Color(red: 0.1, green: 0.18, blue: 0.1),
                         ],
                         startPoint: .bottom,
                         endPoint: .topTrailing
@@ -33,7 +30,7 @@ struct ContentView: View {
 
                     List {
                         Section {
-                            if habits.isEmpty {
+                            if viewModel.habits.isEmpty {
                                 ContentUnavailableView(
                                     "No tracked habits yet",
                                     systemImage: "xmark.circle",
@@ -42,7 +39,7 @@ struct ContentView: View {
                                     )
                                 )
                             } else {
-                                ForEach($habits) { $habit in
+                                ForEach(viewModel.habits) { habit in
 
                                     HStack {
                                         VStack(alignment: .leading, spacing: 6)
@@ -51,50 +48,59 @@ struct ContentView: View {
                                                 .font(.title3)
                                                 .fontDesign(.rounded)
                                                 .bold()
-                                            Text("Goal: \(habit.goal) \(habit.unit)")
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                                .bold()
+                                            Text(
+                                                "Goal: \(habit.goal) \(habit.unit)"
+                                            )
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                            .bold()
                                         }
-                                        
+
                                         Spacer()
-                                        
+
                                         HStack(spacing: 12) {
-                                            VStack() {
+                                            VStack {
                                                 Text("Today")
                                                     .font(.subheadline)
                                                     .foregroundStyle(.secondary)
                                                     .bold()
                                                 Spacer()
                                                 Button {
-                                                    habit.isChecked.toggle()
+                                                    Task {
+                                                        await viewModel
+                                                            .toggleToday(
+                                                                for: habit
+                                                            )
+                                                    }
                                                 } label: {
                                                     Image(
-                                                        systemName: habit.isChecked
-                                                        ? "checkmark.circle.fill"
-                                                        : "circle"
+                                                        systemName: habit
+                                                            .isCompletedToday
+                                                            ? "checkmark.circle.fill"
+                                                            : "circle"
                                                     )
                                                     .font(.system(size: 26))
                                                     .foregroundColor(
-                                                        habit.isChecked
-                                                        ? .green.opacity(0.6)
-                                                        : .gray
+                                                        habit.isCompletedToday
+                                                            ? .green.opacity(
+                                                                0.6
+                                                            )
+                                                            : .gray
                                                     )
                                                 }
                                                 .buttonStyle(.plain)
                                             }
-                                            
-                                            VStack() {
+
+                                            VStack {
                                                 Text("Streak")
                                                     .font(.subheadline)
                                                     .foregroundStyle(.secondary)
                                                     .bold()
                                                 Spacer()
-                                                Text("🔥3")
+                                                Text("🔥\(habit.currentStreak)")
                                                     .font(.title3)
                                                     .fontDesign(.rounded)
                                                     .bold()
-                                                
                                             }
                                         }
                                     }
@@ -113,8 +119,8 @@ struct ContentView: View {
                     }
                     .sheet(isPresented: $showingAddHabitSheet) {
                         AddHabitView(
-                            habits: $habits,
-                            isPresented: $showingAddHabitSheet
+                            isPresented: $showingAddHabitSheet,
+                            viewModel: viewModel
                         )
                     }
                 }
@@ -128,11 +134,10 @@ struct ContentView: View {
     }
 
     private func reloadHabits() async {
-        habits = await firebase.fetchHabits()
+        await viewModel.fetchHabits()
     }
-
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: HabitsViewModel())
 }

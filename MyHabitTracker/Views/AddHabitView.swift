@@ -8,14 +8,13 @@
 import SwiftUI
 
 struct AddHabitView: View {
-    @Binding var habits: [Habit]
     @Binding var isPresented: Bool
 
     @State private var newHabitName = ""
     @State private var newHabitGoal = ""
     @State private var newHabitUnit = ""
 
-    private let firebase = FirebaseManager()
+    @Bindable var viewModel: HabitsViewModel
 
     var body: some View {
         NavigationStack {
@@ -88,7 +87,7 @@ struct AddHabitView: View {
 
         guard !newHabitUnit.isEmpty else { return }
 
-        await firebase.saveHabit(
+        await viewModel.saveHabit(
             name: newHabitName,
             goal: newHabitGoal,
             unit: newHabitUnit
@@ -97,9 +96,11 @@ struct AddHabitView: View {
         newHabitGoal = ""
         newHabitUnit = ""
         await reloadHabits()
+
+        isPresented = false
     }
 
     func reloadHabits() async {
-        habits = await firebase.fetchHabits()
+        await viewModel.fetchHabits()
     }
 }
