@@ -99,7 +99,22 @@ class HabitsViewModel {
             self.errorMessage =
                 "Could not update: \(error.localizedDescription)"
         }
-
+    }
+    
+    func deleteHabit(at offsets: IndexSet) async {
+        
+        for index in offsets {
+            let habit = habits[index]
+            
+            do { try await db.collection("habits")
+                    .document(habit.id)
+                    .delete()
+            } catch {
+                self.errorMessage =
+                "Could not delete: \(error.localizedDescription)"
+            }
+        }
+        await fetchHabits()
     }
 
 }

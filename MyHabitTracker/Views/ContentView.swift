@@ -105,6 +105,11 @@ struct ContentView: View {
                                         }
                                     }
                                 }
+                                .onDelete{ offsets in
+                                    Task {
+                                        await viewModel.deleteHabit(at: offsets)
+                                    }
+                                }
                             }
                         }
                     }
