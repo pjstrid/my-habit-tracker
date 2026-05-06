@@ -10,7 +10,8 @@ import SwiftUI
 struct ContentView: View {
 
     @State private var showingAddHabitSheet = false
-
+    @State private var showStats = false
+    
     @Bindable var viewModel: HabitsViewModel
 
     var body: some View {
@@ -23,11 +24,11 @@ struct ContentView: View {
                             Color(.black),
                             Color(red: 0.1, green: 0.18, blue: 0.1),
                         ],
-                        startPoint: .bottom,
+                        startPoint: .center,
                         endPoint: .topTrailing
                     )
                     .ignoresSafeArea()
-
+                    
                     List {
                         Section {
                             if viewModel.habits.isEmpty {
@@ -54,6 +55,15 @@ struct ContentView: View {
                         }
                     }
                     .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button {
+                                showStats = true
+                            } label: {
+                                Image(systemName: "chart.bar.xaxis")
+                                Text("Stats")
+                                    .bold()
+                            }
+                        }
                         ToolbarItem(placement: .primaryAction) {
                             Button {
                                 showingAddHabitSheet = true
@@ -69,6 +79,9 @@ struct ContentView: View {
                         )
                     }
                 }
+            }
+            .navigationDestination(isPresented: $showStats) {
+                StatsView()
             }
             .navigationTitle("My Habit Tracker")
             .task {
