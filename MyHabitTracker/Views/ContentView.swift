@@ -40,72 +40,12 @@ struct ContentView: View {
                                 )
                             } else {
                                 ForEach(viewModel.habits) { habit in
-
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 6)
-                                        {
-                                            Text(habit.name)
-                                                .font(.title3)
-                                                .fontDesign(.rounded)
-                                                .bold()
-                                            Text(
-                                                "Goal: \(habit.goal) \(habit.unit)"
-                                            )
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .bold()
-                                        }
-
-                                        Spacer()
-
-                                        HStack(spacing: 12) {
-                                            VStack {
-                                                Text("Today")
-                                                    .font(.subheadline)
-                                                    .foregroundStyle(.secondary)
-                                                    .bold()
-                                                Spacer()
-                                                Button {
-                                                    Task {
-                                                        await viewModel
-                                                            .toggleToday(
-                                                                for: habit
-                                                            )
-                                                    }
-                                                } label: {
-                                                    Image(
-                                                        systemName: habit
-                                                            .isCompletedToday
-                                                            ? "checkmark.circle.fill"
-                                                            : "circle"
-                                                    )
-                                                    .font(.system(size: 26))
-                                                    .foregroundColor(
-                                                        habit.isCompletedToday
-                                                            ? .green.opacity(
-                                                                0.6
-                                                            )
-                                                            : .gray
-                                                    )
-                                                }
-                                                .buttonStyle(.plain)
-                                            }
-
-                                            VStack {
-                                                Text("Streak")
-                                                    .font(.subheadline)
-                                                    .foregroundStyle(.secondary)
-                                                    .bold()
-                                                Spacer()
-                                                Text("🔥\(habit.currentStreak)")
-                                                    .font(.title3)
-                                                    .fontDesign(.rounded)
-                                                    .bold()
-                                            }
-                                        }
-                                    }
+                                    HabitListItemView(
+                                        habit: habit,
+                                        viewModel: viewModel
+                                    )
                                 }
-                                .onDelete{ offsets in
+                                .onDelete { offsets in
                                     Task {
                                         await viewModel.deleteHabit(at: offsets)
                                     }
