@@ -73,7 +73,7 @@ class HabitsViewModel {
         }
     }
 
-    func toggleToday(for habit: Habit) async {
+    func toggleToday(for habit: Habit, updatedProgress: Int) async {
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -82,13 +82,16 @@ class HabitsViewModel {
             calendar.isDate($0, inSameDayAs: today)
         }
 
+        let resetProgress = 0
+
         do {
             if isCompletedToday {
                 try await db.collection("habits").document(habit.id)
                     .updateData([
                         "completedDates": FieldValue.arrayRemove([
                             Timestamp(date: today)
-                        ])
+                        ]),
+                        "progress": resetProgress,
                     ])
             } else {
                 try await db.collection("habits")
@@ -96,7 +99,8 @@ class HabitsViewModel {
                     .updateData([
                         "completedDates": FieldValue.arrayUnion([
                             Timestamp(date: today)
-                        ])
+                        ]),
+                        "progress": updatedProgress,
                     ])
             }
             await fetchHabits()
@@ -165,7 +169,7 @@ class HabitsViewModel {
             }
 
             await fetchHabits()
-            
+
         } catch {
             self.errorMessage =
                 "Could not update: \(error.localizedDescription)"

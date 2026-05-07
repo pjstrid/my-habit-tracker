@@ -11,7 +11,7 @@ struct ContentView: View {
 
     @State private var showingAddHabitSheet = false
     @State private var showStats = false
-    
+
     @Bindable var viewModel: HabitsViewModel
 
     var body: some View {
@@ -28,7 +28,7 @@ struct ContentView: View {
                         endPoint: .topTrailing
                     )
                     .ignoresSafeArea()
-                    
+
                     List {
                         Section {
                             if viewModel.habits.isEmpty {
@@ -36,7 +36,7 @@ struct ContentView: View {
                                     "No tracked habits yet",
                                     systemImage: "xmark.circle",
                                     description: Text(
-                                        "Add a tracked habit to get started!"
+                                        "Add a habit to get started!"
                                     )
                                 )
                             } else {

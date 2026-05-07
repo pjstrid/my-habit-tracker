@@ -10,9 +10,14 @@ import SwiftUI
 struct HabitListItemView: View {
     let habit: Habit
     @Bindable var viewModel: HabitsViewModel
-    
+
     @State private var showingProgressSheet = false
     @State private var progressInput = ""
+
+    private var progressFraction: Double {
+        guard habit.goal > 0 else { return 0 }
+        return min(Double(habit.progress) / Double(habit.goal), 1.0)
+    }
 
     var body: some View {
 
@@ -28,13 +33,15 @@ struct HabitListItemView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .bold()
-                
-                Text(
-                    "Progress: \(habit.progress) \(habit.unit)"
-                )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .bold()
+
+                VStack(alignment: .leading) {
+
+                    ProgressView(value: progressFraction)
+                        .tint(
+                            habit.isCompletedToday
+                                ? .green.opacity(0.6) : .orange.opacity(0.6)
+                        )
+                }
             }
 
             Spacer()
@@ -50,7 +57,8 @@ struct HabitListItemView: View {
                         Task {
                             await viewModel
                                 .toggleToday(
-                                    for: habit
+                                    for: habit,
+                                    updatedProgress: habit.goal
                                 )
                         }
                     } label: {
@@ -89,7 +97,7 @@ struct HabitListItemView: View {
             showingProgressSheet = true
         }
         .sheet(isPresented: $showingProgressSheet) {
-            ZStack{
+            ZStack {
                 LinearGradient(
                     colors: [
                         Color(.black),
@@ -103,23 +111,26 @@ struct HabitListItemView: View {
                     Text("Update progress on '\(habit.name)'")
                         .font(.title2)
                         .bold()
-                    
+
                     Text("Current progress is: \(habit.progress) \(habit.unit)")
                         .font(.subheadline)
                         .bold()
-                    
-                    TextField("Progress", text: $progressInput)
+
+                    TextField("New total progress", text: $progressInput)
                         .keyboardType(.numberPad)
                         .padding()
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(10)
-                    
+
                     Button("Save") {
                         Task {
                             if let progress = Int(progressInput) {
-                                await viewModel.updateProgress(for: habit, updatedProgress: progress)
+                                await viewModel.updateProgress(
+                                    for: habit,
+                                    updatedProgress: progress
+                                )
                             }
-                            
+
                             progressInput = ""
                             showingProgressSheet = false
                         }
@@ -127,9 +138,9 @@ struct HabitListItemView: View {
                     .buttonStyle(.glass)
                     .font(.title2)
                     .bold()
-                    
+
                     Spacer()
-                    
+
                     Button("Cancel") {
                         Task {
                             progressInput = ""
