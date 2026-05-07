@@ -10,6 +10,9 @@ import SwiftUI
 struct HabitListItemView: View {
     let habit: Habit
     @Bindable var viewModel: HabitsViewModel
+    
+    @State private var showingProgressSheet = false
+    @State private var progressInput = ""
 
     var body: some View {
 
@@ -21,6 +24,13 @@ struct HabitListItemView: View {
                     .bold()
                 Text(
                     "Goal: \(habit.goal) \(habit.unit)"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .bold()
+                
+                Text(
+                    "Progress: \(habit.progress) \(habit.unit)"
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -74,6 +84,37 @@ struct HabitListItemView: View {
                         .bold()
                 }
             }
+        }
+        .onTapGesture {
+            showingProgressSheet = true
+        }
+        .sheet(isPresented: $showingProgressSheet) {
+            VStack(spacing: 20) {
+                Text("Add progress")
+                    .font(.title2)
+                    .bold()
+                
+                TextField("Progress", text: $progressInput)
+                    .keyboardType(.numberPad)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+                
+                Button("Save") {
+                    Task {
+                        if let progress = Int(progressInput) {
+                            await viewModel.addProgress(for: habit, addedProgress: progress)
+                        }
+                        
+                        progressInput = ""
+                        showingProgressSheet = false
+                    }
+                }
+                .buttonStyle(.glass)
+                
+                Spacer()
+            }
+            .padding()
         }
     }
 }

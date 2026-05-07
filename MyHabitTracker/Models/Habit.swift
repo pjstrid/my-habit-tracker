@@ -10,9 +10,10 @@ import FirebaseFirestore
 struct Habit: Identifiable, Codable {
     var id: String
     var name: String
-    var goal: String
+    var goal: Int
     var unit: String
     var completedDates: [Date] = []
+    var progress: Int
 }
 
 extension Habit {

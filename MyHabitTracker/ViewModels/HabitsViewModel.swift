@@ -25,8 +25,11 @@ class HabitsViewModel {
                 let data = doc.data()
 
                 guard let name = data["name"] as? String else { return nil }
-                guard let goal = data["goal"] as? String else { return nil }
+                guard let goal = data["goal"] as? Int else { return nil }
                 guard let unit = data["unit"] as? String else { return nil }
+                guard let progress = data["progress"] as? Int else {
+                    return nil
+                }
 
                 let completedDates =
                     (data["completedDates"] as? [Timestamp])?.map {
@@ -38,7 +41,8 @@ class HabitsViewModel {
                     name: name,
                     goal: goal,
                     unit: unit,
-                    completedDates: completedDates
+                    completedDates: completedDates,
+                    progress: progress
                 )
             }
 
@@ -50,13 +54,14 @@ class HabitsViewModel {
         }
     }
 
-    func saveHabit(name: String, goal: String, unit: String) async {
+    func saveHabit(name: String, goal: Int, unit: String) async {
 
         let data: [String: Any] = [
             "name": name,
             "goal": goal,
             "unit": unit,
             "completedDates": [],
+            "progress": 0,
         ]
 
         do {
@@ -100,21 +105,71 @@ class HabitsViewModel {
                 "Could not update: \(error.localizedDescription)"
         }
     }
-    
+
     func deleteHabit(at offsets: IndexSet) async {
-        
+
         for index in offsets {
             let habit = habits[index]
-            
-            do { try await db.collection("habits")
+
+            do {
+                try await db.collection("habits")
                     .document(habit.id)
                     .delete()
             } catch {
                 self.errorMessage =
-                "Could not delete: \(error.localizedDescription)"
+                    "Could not delete: \(error.localizedDescription)"
             }
         }
         await fetchHabits()
+    }
+
+    func addProgress(for habit: Habit, addedProgress: Int) async {
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        let newProgress = /*habit.progress +*/ addedProgress
+
+        let reachedGoal = newProgress >= habit.goal
+
+        do {
+
+            try await db.collection("habits")
+                .document(habit.id)
+                .updateData([
+                    "progress": newProgress
+                ])
+
+            if reachedGoal {
+                try await db.collection("habits")
+                    .document(habit.id)
+                    .updateData([
+                        "completedDates": FieldValue.arrayUnion([
+                            Timestamp(date: today)
+                        ])
+                    ])
+            }
+
+            if !reachedGoal
+                && habit.completedDates.contains(where: {
+                    calendar.isDate($0, inSameDayAs: today)
+                })
+            {
+                try await db.collection("habits")
+                    .document(habit.id)
+                    .updateData([
+                        "completedDates": FieldValue.arrayRemove([
+                            Timestamp(date: today)
+                        ])
+                    ])
+            }
+
+            await fetchHabits()
+            
+        } catch {
+            self.errorMessage =
+                "Could not update: \(error.localizedDescription)"
+        }
     }
 
 }

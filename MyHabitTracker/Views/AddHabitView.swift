@@ -33,8 +33,9 @@ struct AddHabitView: View {
                     Section {
                         TextField("Habit", text: $newHabitName)
                         TextField("Goal", text: $newHabitGoal)
+                            .keyboardType(.numberPad)
                         TextField(
-                            "Unit, e.g. 'steps', 'pages'",
+                            "Unit ('steps', 'pages', 'minutes')",
                             text: $newHabitUnit
                         )
 
@@ -50,15 +51,10 @@ struct AddHabitView: View {
                                 }
                             }
                             .disabled(
-                                newHabitName.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                                    || newHabitGoal.trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    ).isEmpty
-                                    || newHabitUnit.trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    ).isEmpty
+                                newHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                                newHabitGoal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                                Int(newHabitGoal) == nil ||
+                                newHabitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                             )
                             .buttonStyle(.glass)
                             .font(Font.title3.bold())
@@ -83,18 +79,20 @@ struct AddHabitView: View {
 
         guard !newHabitName.isEmpty else { return }
 
-        guard !newHabitGoal.isEmpty else { return }
+        guard let goalConverted = Int(newHabitGoal), goalConverted > 0 else { return }
 
         guard !newHabitUnit.isEmpty else { return }
 
         await viewModel.saveHabit(
             name: newHabitName,
-            goal: newHabitGoal,
+            goal: goalConverted,
             unit: newHabitUnit
         )
+        
         newHabitName = ""
         newHabitGoal = ""
         newHabitUnit = ""
+        
         await reloadHabits()
 
         isPresented = false
