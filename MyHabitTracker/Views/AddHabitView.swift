@@ -24,7 +24,7 @@ struct AddHabitView: View {
                         Color(.black),
                         Color(red: 0.1, green: 0.20, blue: 0.1),
                     ],
-                    startPoint: .bottom,
+                    startPoint: .center,
                     endPoint: .topTrailing
                 )
                 .ignoresSafeArea()

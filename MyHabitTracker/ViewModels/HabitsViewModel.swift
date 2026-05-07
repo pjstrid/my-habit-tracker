@@ -123,12 +123,12 @@ class HabitsViewModel {
         await fetchHabits()
     }
 
-    func addProgress(for habit: Habit, addedProgress: Int) async {
+    func updateProgress(for habit: Habit, updatedProgress: Int) async {
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        let newProgress = /*habit.progress +*/ addedProgress
+        let newProgress = /*habit.progress +*/ updatedProgress
 
         let reachedGoal = newProgress >= habit.goal
 

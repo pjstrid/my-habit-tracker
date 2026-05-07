@@ -5,8 +5,8 @@
 //  Created by Jonathan Strid on 2026-05-06.
 //
 
-import SwiftUI
 import Charts
+import SwiftUI
 
 struct StatsView: View {
 
@@ -14,32 +14,30 @@ struct StatsView: View {
         "Steps",
         "Eat Fruit",
     ]
-    
+
     let stepsStatsView: [StatsObject] = [
-        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 10000),
-        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 9500),
-        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 11000),
-        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 8300),
-        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 7600),
-        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 10500),
-        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 10900),
+        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 10000, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 9500, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 11000, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 8300, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 7600, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 10500, unit: "steps"),
+        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 10900, unit: "steps"),
     ]
-    
+
     let eatFruitStatsView: [StatsObject] = [
-        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 3),
-        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 4),
-        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 1),
-        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 3),
-        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 5),
-        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 2),
-        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 1),
+        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 3, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 4, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 1, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 3, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 5, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 2, unit: "pcs"),
+        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 1, unit: "pcs"),
     ]
 
     @State private var selected = ""
     @State private var selectedList: [StatsObject] = []
     @State private var selectedListGoal = 0
-
-
 
     var body: some View {
         ZStack {
@@ -71,7 +69,7 @@ struct StatsView: View {
                                     .onTapGesture {
                                         withAnimation(.easeInOut) {
                                             selected = item
-                                            
+
                                             if selected == "Steps" {
                                                 selectedList = stepsStatsView
                                                 selectedListGoal = 8500
@@ -103,51 +101,53 @@ struct StatsView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.green.opacity(0.2), lineWidth: 3)
                 )
+                .padding(.bottom, 10)
 
                 Chart {
-                    
+
                     ForEach(selectedList) { statsObject in
-                        BarMark(x: .value("Day", statsObject.date, unit: .day),
-                                y: .value("Steps", statsObject.statsCount)
+                        BarMark(
+                            x: .value("Day", statsObject.date, unit: .day),
+                            y: .value("Steps", statsObject.statsCount)
                         )
                         .foregroundStyle(Color.green.gradient)
                     }
-                    
+
                     RuleMark(y: .value("Goal", selectedListGoal))
                         .foregroundStyle(Color.orange)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
-                        
+
                 }
                 .frame(height: 200)
-                
+                .chartXAxis {
+                    AxisMarks(values: selectedList.map { $0.date }) { date in
+                        AxisValueLabel()
+                    }
+                }
+
                 HStack {
                     Image(systemName: "line.diagonal")
                         .rotationEffect(Angle(degrees: 45))
                         .foregroundStyle(.orange)
-                    
-                    Text("Daily Goal")
+
+                    Text("Daily Goal: \(selectedListGoal)")
                         .foregroundStyle(.secondary)
+                        .fontDesign(.rounded)
                 }
-                
-                Spacer()
-                
-                
+
+                List {
+                    ForEach(selectedList) { statsObject in
+                        HStack {
+                            Text(statsObject.date, style: .date)
+                            Spacer()
+                            Text("\(statsObject.statsCount) \(statsObject.unit)")
+                                .bold()
+                        }
+                    }
+                }
             }
             .padding()
         }
-    }
-}
-
-struct StatsObject: Identifiable {
-    let id = UUID()
-    let date: Date
-    let statsCount: Int
-}
-
-extension Date {
-    static func from(year: Int, month: Int, day: Int) -> Date {
-        let components = DateComponents(year: year, month: month, day: day)
-        return Calendar.current.date(from: components)!
     }
 }
 

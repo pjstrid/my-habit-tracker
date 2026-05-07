@@ -89,32 +89,60 @@ struct HabitListItemView: View {
             showingProgressSheet = true
         }
         .sheet(isPresented: $showingProgressSheet) {
-            VStack(spacing: 20) {
-                Text("Add progress")
+            ZStack{
+                LinearGradient(
+                    colors: [
+                        Color(.black),
+                        Color(red: 0.1, green: 0.20, blue: 0.1),
+                    ],
+                    startPoint: .center,
+                    endPoint: .topTrailing
+                )
+                .ignoresSafeArea()
+                VStack(spacing: 20) {
+                    Text("Update progress on '\(habit.name)'")
+                        .font(.title2)
+                        .bold()
+                    
+                    Text("Current progress is: \(habit.progress) \(habit.unit)")
+                        .font(.subheadline)
+                        .bold()
+                    
+                    TextField("Progress", text: $progressInput)
+                        .keyboardType(.numberPad)
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(10)
+                    
+                    Button("Save") {
+                        Task {
+                            if let progress = Int(progressInput) {
+                                await viewModel.updateProgress(for: habit, updatedProgress: progress)
+                            }
+                            
+                            progressInput = ""
+                            showingProgressSheet = false
+                        }
+                    }
+                    .buttonStyle(.glass)
                     .font(.title2)
                     .bold()
-                
-                TextField("Progress", text: $progressInput)
-                    .keyboardType(.numberPad)
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(10)
-                
-                Button("Save") {
-                    Task {
-                        if let progress = Int(progressInput) {
-                            await viewModel.addProgress(for: habit, addedProgress: progress)
+                    
+                    Spacer()
+                    
+                    Button("Cancel") {
+                        Task {
+                            progressInput = ""
+                            showingProgressSheet = false
                         }
-                        
-                        progressInput = ""
-                        showingProgressSheet = false
                     }
+                    .buttonStyle(.glass)
+                    .foregroundStyle(.red.opacity(0.8))
+                    .font(.title2)
+                    .bold()
                 }
-                .buttonStyle(.glass)
-                
-                Spacer()
+                .padding()
             }
-            .padding()
         }
     }
 }

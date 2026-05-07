@@ -5,7 +5,7 @@
 //  Created by Jonathan Strid on 2026-05-01.
 //
 
-import FirebaseFirestore
+import Foundation
 
 struct Habit: Identifiable, Codable {
     var id: String
