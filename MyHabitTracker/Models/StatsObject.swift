@@ -8,10 +8,11 @@
 import Foundation
 
 struct StatsObject: Identifiable {
-    let id = UUID()
+    let id: String
     let date: Date
     let statsCount: Int
     let unit: String
+    let goal: Int
 }
 
 extension Date {

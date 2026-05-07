@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct HabitListItemView: View {
+    
     let habit: Habit
-    @Bindable var viewModel: HabitsViewModel
+    
+    @Bindable var habitsVM: HabitsViewModel
 
     @State private var showingProgressSheet = false
     @State private var progressInput = ""
@@ -55,7 +57,7 @@ struct HabitListItemView: View {
                     Spacer()
                     Button {
                         Task {
-                            await viewModel
+                            await habitsVM
                                 .toggleToday(
                                     for: habit,
                                     updatedProgress: habit.goal
@@ -125,7 +127,7 @@ struct HabitListItemView: View {
                     Button("Save") {
                         Task {
                             if let progress = Int(progressInput) {
-                                await viewModel.updateProgress(
+                                await habitsVM.updateProgress(
                                     for: habit,
                                     updatedProgress: progress
                                 )

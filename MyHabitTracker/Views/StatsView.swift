@@ -10,34 +10,12 @@ import SwiftUI
 
 struct StatsView: View {
 
-    let items: [String] = [
-        "Steps",
-        "Eat Fruit",
-    ]
-
-    let stepsStatsView: [StatsObject] = [
-        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 10000, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 9500, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 11000, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 8300, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 7600, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 10500, unit: "steps"),
-        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 10900, unit: "steps"),
-    ]
-
-    let eatFruitStatsView: [StatsObject] = [
-        .init(date: Date.from(year: 2026, month: 5, day: 1), statsCount: 3, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 2), statsCount: 4, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 3), statsCount: 1, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 4), statsCount: 3, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 5), statsCount: 5, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 6), statsCount: 2, unit: "pcs"),
-        .init(date: Date.from(year: 2026, month: 5, day: 7), statsCount: 1, unit: "pcs"),
-    ]
-
-    @State private var selected = ""
+    @State private var selectedMenuItem = ""
     @State private var selectedList: [StatsObject] = []
     @State private var selectedListGoal = 0
+    @State private var selectedListUnit = ""
+
+    @Bindable var statsVM: StatsViewModel
 
     var body: some View {
         ZStack {
@@ -59,24 +37,24 @@ struct StatsView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(items, id: \.self) { item in
+                        ForEach(statsVM.habitNames, id: \.self) { item in
                             VStack(spacing: 4) {
                                 Text(item)
                                     .bold()
                                     .foregroundColor(
-                                        selected == item ? .white : .gray
+                                        selectedMenuItem == item
+                                            ? .white : .gray
                                     )
                                     .onTapGesture {
                                         withAnimation(.easeInOut) {
-                                            selected = item
-
-                                            if selected == "Steps" {
-                                                selectedList = stepsStatsView
-                                                selectedListGoal = 8500
-                                            } else if selected == "Eat Fruit" {
-                                                selectedList = eatFruitStatsView
-                                                selectedListGoal = 3
-
+                                            selectedMenuItem = item
+                                            Task {
+                                                await statsVM.fetchStats(
+                                                    name: item
+                                                )
+                                                selectedList = statsVM.statsList
+                                                selectedListGoal = statsVM.statsList[0].goal
+                                                selectedListUnit = statsVM.statsList[0].unit
                                             }
                                         }
                                     }
@@ -84,7 +62,7 @@ struct StatsView: View {
                                 Rectangle()
                                     .frame(height: 3)
                                     .foregroundColor(
-                                        selected == item
+                                        selectedMenuItem == item
                                             ? .green.opacity(0.5) : .clear
                                     )
                             }
@@ -92,19 +70,24 @@ struct StatsView: View {
                     }
                     .padding()
                 }
-                .onAppear {
-                    selected = items.first ?? ""
-                    selectedList = stepsStatsView
-                    selectedListGoal = 8500
+                .padding(.bottom, 10)
+                .task {
+                    await statsVM.fetchHabitNames()
+
+                    if let first = statsVM.habitNames.first {
+                        selectedMenuItem = first
+                        await statsVM.fetchStats(name: first)
+                        selectedList = statsVM.statsList
+                        selectedListGoal = statsVM.statsList[0].goal
+                        selectedListUnit = statsVM.statsList[0].unit
+                    }
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.green.opacity(0.2), lineWidth: 3)
                 )
-                .padding(.bottom, 10)
 
                 Chart {
-
                     ForEach(selectedList) { statsObject in
                         BarMark(
                             x: .value("Day", statsObject.date, unit: .day),
@@ -130,7 +113,7 @@ struct StatsView: View {
                         .rotationEffect(Angle(degrees: 45))
                         .foregroundStyle(.orange)
 
-                    Text("Daily Goal: \(selectedListGoal)")
+                    Text("Daily Goal: \(selectedListGoal) \(selectedListUnit)")
                         .foregroundStyle(.secondary)
                         .fontDesign(.rounded)
                 }
@@ -140,8 +123,10 @@ struct StatsView: View {
                         HStack {
                             Text(statsObject.date, style: .date)
                             Spacer()
-                            Text("\(statsObject.statsCount) \(statsObject.unit)")
-                                .bold()
+                            Text(
+                                "\(statsObject.statsCount) \(statsObject.unit)"
+                            )
+                            .bold()
                         }
                     }
                 }
@@ -152,5 +137,5 @@ struct StatsView: View {
 }
 
 #Preview {
-    StatsView()
+    StatsView(statsVM: StatsViewModel())
 }

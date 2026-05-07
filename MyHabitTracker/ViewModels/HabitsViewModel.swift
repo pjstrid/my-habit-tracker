@@ -21,7 +21,7 @@ class HabitsViewModel {
         do {
             let snapshot = try await db.collection("habits").getDocuments()
 
-            let habits = snapshot.documents.compactMap { doc -> Habit? in
+            let fetchedHabits = snapshot.documents.compactMap { doc -> Habit? in
                 let data = doc.data()
 
                 guard let name = data["name"] as? String else { return nil }
@@ -46,7 +46,7 @@ class HabitsViewModel {
                 )
             }
 
-            self.habits = habits
+            self.habits = fetchedHabits
 
         } catch {
             self.errorMessage =

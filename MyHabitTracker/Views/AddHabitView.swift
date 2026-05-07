@@ -14,7 +14,8 @@ struct AddHabitView: View {
     @State private var newHabitGoal = ""
     @State private var newHabitUnit = ""
 
-    @Bindable var viewModel: HabitsViewModel
+    @Bindable var habitsVM: HabitsViewModel
+    @Bindable var statsVM: StatsViewModel
 
     var body: some View {
         NavigationStack {
@@ -32,6 +33,9 @@ struct AddHabitView: View {
                 Form {
                     Section {
                         TextField("Habit", text: $newHabitName)
+                            .onChange(of: newHabitName) { _, newValue in
+                                    newHabitName = newValue.replacingOccurrences(of: " ", with: "")
+                                }
                         TextField("Goal", text: $newHabitGoal)
                             .keyboardType(.numberPad)
                         TextField(
@@ -42,7 +46,9 @@ struct AddHabitView: View {
                         HStack {
                             Spacer()
                             Button {
-                                Task { await saveNewHabit() }
+                                Task {
+                                    await saveNewHabit()
+                                }
                             } label: {
                                 HStack {
                                     Image(systemName: "plus.circle.fill")
@@ -51,10 +57,15 @@ struct AddHabitView: View {
                                 }
                             }
                             .disabled(
-                                newHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                                newHabitGoal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                                Int(newHabitGoal) == nil ||
-                                newHabitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                newHabitName.trimmingCharacters(
+                                    in: .whitespacesAndNewlines
+                                ).isEmpty
+                                    || newHabitGoal.trimmingCharacters(
+                                        in: .whitespacesAndNewlines
+                                    ).isEmpty || Int(newHabitGoal) == nil
+                                    || newHabitUnit.trimmingCharacters(
+                                        in: .whitespacesAndNewlines
+                                    ).isEmpty
                             )
                             .buttonStyle(.glass)
                             .font(Font.title3.bold())
@@ -79,26 +90,34 @@ struct AddHabitView: View {
 
         guard !newHabitName.isEmpty else { return }
 
-        guard let goalConverted = Int(newHabitGoal), goalConverted > 0 else { return }
+        guard let goalConverted = Int(newHabitGoal), goalConverted > 0 else {
+            return
+        }
 
         guard !newHabitUnit.isEmpty else { return }
 
-        await viewModel.saveHabit(
+        await habitsVM.saveHabit(
             name: newHabitName,
             goal: goalConverted,
             unit: newHabitUnit
         )
         
+        await statsVM.createStatsList(
+            name: newHabitName,
+            unit: newHabitUnit,
+            goal: goalConverted
+        )
+
         newHabitName = ""
         newHabitGoal = ""
         newHabitUnit = ""
-        
+
         await reloadHabits()
 
         isPresented = false
     }
 
     func reloadHabits() async {
-        await viewModel.fetchHabits()
+        await habitsVM.fetchHabits()
     }
 }

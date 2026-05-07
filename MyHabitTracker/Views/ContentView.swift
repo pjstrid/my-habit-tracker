@@ -12,7 +12,8 @@ struct ContentView: View {
     @State private var showingAddHabitSheet = false
     @State private var showStats = false
 
-    @Bindable var viewModel: HabitsViewModel
+    @State var habitsVM = HabitsViewModel()
+    @State var statsVM = StatsViewModel()
 
     var body: some View {
 
@@ -31,7 +32,7 @@ struct ContentView: View {
 
                     List {
                         Section {
-                            if viewModel.habits.isEmpty {
+                            if habitsVM.habits.isEmpty {
                                 ContentUnavailableView(
                                     "No tracked habits yet",
                                     systemImage: "xmark.circle",
@@ -40,15 +41,15 @@ struct ContentView: View {
                                     )
                                 )
                             } else {
-                                ForEach(viewModel.habits) { habit in
+                                ForEach(habitsVM.habits) { habit in
                                     HabitListItemView(
                                         habit: habit,
-                                        viewModel: viewModel
+                                        habitsVM: habitsVM
                                     )
                                 }
                                 .onDelete { offsets in
                                     Task {
-                                        await viewModel.deleteHabit(at: offsets)
+                                        await habitsVM.deleteHabit(at: offsets)
                                     }
                                 }
                             }
@@ -75,13 +76,14 @@ struct ContentView: View {
                     .sheet(isPresented: $showingAddHabitSheet) {
                         AddHabitView(
                             isPresented: $showingAddHabitSheet,
-                            viewModel: viewModel
+                            habitsVM: habitsVM,
+                            statsVM: statsVM
                         )
                     }
                 }
             }
             .navigationDestination(isPresented: $showStats) {
-                StatsView()
+                StatsView(statsVM: statsVM)
             }
             .navigationTitle("My Habit Tracker")
             .task {
@@ -92,10 +94,10 @@ struct ContentView: View {
     }
 
     private func reloadHabits() async {
-        await viewModel.fetchHabits()
+        await habitsVM.fetchHabits()
     }
 }
 
 #Preview {
-    ContentView(viewModel: HabitsViewModel())
+    ContentView(habitsVM: HabitsViewModel(), statsVM: StatsViewModel())
 }
