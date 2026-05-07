@@ -84,7 +84,7 @@ struct ContentView: View {
                 }
             }
             .navigationDestination(isPresented: $showStats) {
-                StatsView(statsVM: statsVM)
+                StatsView(statsVM: statsVM, habitsVM: habitsVM)
             }
             .navigationTitle("My Habit Tracker")
             .task {

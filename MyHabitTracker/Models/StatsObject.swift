@@ -7,12 +7,10 @@
 
 import Foundation
 
-struct StatsObject: Identifiable {
-    let id: String
-    let date: Date
-    let statsCount: Int
-    let unit: String
-    let goal: Int
+struct StatsObject: Identifiable, Codable {
+    var id: String = UUID().uuidString
+    var date: Date
+    var statsCount: Int
 }
 
 extension Date {

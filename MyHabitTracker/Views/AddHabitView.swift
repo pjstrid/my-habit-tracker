@@ -102,11 +102,11 @@ struct AddHabitView: View {
             unit: newHabitUnit
         )
         
-        await statsVM.createStatsList(
-            name: newHabitName,
-            unit: newHabitUnit,
-            goal: goalConverted
-        )
+//        await statsVM.createStatsList(
+//            name: newHabitName,
+//            unit: newHabitUnit,
+//            goal: goalConverted
+//        )
 
         newHabitName = ""
         newHabitGoal = ""

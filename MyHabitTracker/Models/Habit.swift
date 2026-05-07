@@ -14,6 +14,7 @@ struct Habit: Identifiable, Codable {
     var unit: String
     var completedDates: [Date] = []
     var progress: Int
+    var stats: [StatsObject] = []
 }
 
 extension Habit {

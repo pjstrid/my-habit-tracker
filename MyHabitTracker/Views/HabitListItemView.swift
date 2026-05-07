@@ -63,10 +63,9 @@ struct HabitListItemView: View {
                                     for: habit,
                                     updatedProgress: habit.goal
                                 )
-                            await statsVM.updateStatsObject(
-                                for: habit.name,
-                                progress: habit.goal,
-                                date: Date()
+                            await habitsVM.updateStatsObject(
+                                for: habit,
+                                newProgress: habit.goal
                             )
                         }
                     } label: {
@@ -138,10 +137,9 @@ struct HabitListItemView: View {
                                     updatedProgress: progress
                                 )
 
-                                await statsVM.updateStatsObject(
-                                    for: habit.name,
-                                    progress: progress,
-                                    date: Date()
+                                await habitsVM.updateStatsObject(
+                                    for: habit,
+                                    newProgress: progress
                                 )
                             }
 

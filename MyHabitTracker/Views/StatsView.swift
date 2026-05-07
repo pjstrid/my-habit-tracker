@@ -16,6 +16,7 @@ struct StatsView: View {
     @State private var selectedListUnit = ""
 
     @Bindable var statsVM: StatsViewModel
+    @Bindable var habitsVM: HabitsViewModel
 
     var body: some View {
         ZStack {
@@ -37,7 +38,7 @@ struct StatsView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(statsVM.habitNames, id: \.self) { item in
+                        ForEach(habitsVM.habits.map(\.name), id: \.self) { item in
                             VStack(spacing: 4) {
                                 Text(item)
                                     .bold()
@@ -48,13 +49,11 @@ struct StatsView: View {
                                     .onTapGesture {
                                         withAnimation(.easeInOut) {
                                             selectedMenuItem = item
-                                            Task {
-                                                await statsVM.fetchStats(
-                                                    name: item
-                                                )
-                                                selectedList = statsVM.statsList
-                                                selectedListGoal = statsVM.statsList[0].goal
-                                                selectedListUnit = statsVM.statsList[0].unit
+
+                                            if let habit = habitsVM.habits.first(where: { $0.name == item }) {
+                                                selectedList = habit.stats.sorted { $0.date < $1.date }
+                                                selectedListGoal = habit.goal
+                                                selectedListUnit = habit.unit
                                             }
                                         }
                                     }
@@ -72,14 +71,11 @@ struct StatsView: View {
                 }
                 .padding(.bottom, 10)
                 .task {
-                    await statsVM.fetchHabitNames()
-
-                    if let first = statsVM.habitNames.first {
-                        selectedMenuItem = first
-                        await statsVM.fetchStats(name: first)
-                        selectedList = statsVM.statsList
-                        selectedListGoal = statsVM.statsList[0].goal
-                        selectedListUnit = statsVM.statsList[0].unit
+                    if let first = habitsVM.habits.first {
+                        selectedMenuItem = first.name
+                        selectedList = first.stats.sorted { $0.date < $1.date }
+                        selectedListGoal = first.goal
+                        selectedListUnit = first.unit
                     }
                 }
                 .overlay(
@@ -123,9 +119,7 @@ struct StatsView: View {
                         HStack {
                             Text(statsObject.date, style: .date)
                             Spacer()
-                            Text(
-                                "\(statsObject.statsCount) \(statsObject.unit)"
-                            )
+                            Text("\(statsObject.statsCount) \(selectedListUnit)")
                             .bold()
                         }
                     }
@@ -137,5 +131,5 @@ struct StatsView: View {
 }
 
 #Preview {
-    StatsView(statsVM: StatsViewModel())
+    StatsView(statsVM: StatsViewModel(), habitsVM: HabitsViewModel())
 }

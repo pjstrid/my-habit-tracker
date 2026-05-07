@@ -17,6 +17,7 @@ class HabitsViewModel {
 
     private let db = Firestore.firestore()
 
+    @MainActor
     func fetchHabits() async {
         do {
             let snapshot = try await db.collection("habits").getDocuments()
@@ -27,9 +28,7 @@ class HabitsViewModel {
                 guard let name = data["name"] as? String else { return nil }
                 guard let goal = data["goal"] as? Int else { return nil }
                 guard let unit = data["unit"] as? String else { return nil }
-                guard let progress = data["progress"] as? Int else {
-                    return nil
-                }
+                guard let progress = data["progress"] as? Int else { return nil }
 
                 let completedDates =
                     (data["completedDates"] as? [Timestamp])?.map {
@@ -49,11 +48,10 @@ class HabitsViewModel {
             self.habits = fetchedHabits
 
         } catch {
-            self.errorMessage =
-                "Could not fetch: \(error.localizedDescription)"
+            self.errorMessage = "Could not fetch: \(error.localizedDescription)"
         }
     }
-
+    
     func saveHabit(name: String, goal: Int, unit: String) async {
 
         let data: [String: Any] = [
@@ -173,6 +171,54 @@ class HabitsViewModel {
         } catch {
             self.errorMessage =
                 "Could not update: \(error.localizedDescription)"
+        }
+    }
+    
+    func updateStatsObject(for habit: Habit, newProgress: Int) async {
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        var updatedHabit = habit
+
+        // 1. Uppdatera progress
+        updatedHabit.progress = newProgress
+
+        // 2. Uppdatera completedDates
+        if newProgress >= habit.goal {
+            if !updatedHabit.completedDates.contains(where: {
+                calendar.isDate($0, inSameDayAs: today)
+            }) {
+                updatedHabit.completedDates.append(today)
+            }
+        } else {
+            updatedHabit.completedDates.removeAll {
+                calendar.isDate($0, inSameDayAs: today)
+            }
+        }
+
+        // 3. Uppdatera stats-listan
+        if let index = updatedHabit.stats.firstIndex(where: {
+            calendar.isDate($0.date, inSameDayAs: today)
+        }) {
+            updatedHabit.stats[index].statsCount = newProgress
+        } else {
+            updatedHabit.stats.append(
+                StatsObject(date: today, statsCount: newProgress)
+            )
+        }
+
+        
+        do {
+            try db.collection("habits")
+                .document(habit.id)
+                .setData(from: updatedHabit)
+
+            await fetchHabits()
+
+        } catch {
+            self.errorMessage =
+                "Could not update stats: \(error.localizedDescription)"
         }
     }
 
