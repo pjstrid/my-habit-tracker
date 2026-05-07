@@ -92,4 +92,51 @@ class StatsViewModel {
                 "Could not save: \(error.localizedDescription)"
         }
     }
+    
+    func updateStatsObject(for name: String, progress: Int, date: Date) async {
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: date)
+
+        do {
+            
+            let snapshot = try await db.collection("\(name)_statsList").getDocuments()
+
+            
+            let todaysDoc = snapshot.documents.first { doc in
+                if let timestamp = doc.data()["date"] as? Timestamp {
+                    return calendar.isDate(timestamp.dateValue(), inSameDayAs: today)
+                }
+                return false
+            }
+
+            if let doc = todaysDoc {
+                
+                try await db.collection("\(name)_statsList")
+                    .document(doc.documentID)
+                    .updateData([
+                        "statsCount": progress
+                    ])
+
+            } else {
+                
+                let unit = statsList.first?.unit ?? ""
+                let goal = statsList.first?.goal ?? 0
+
+                let newData: [String: Any] = [
+                    "date": Timestamp(date: today),
+                    "statsCount": progress,
+                    "unit": unit,
+                    "goal": goal
+                ]
+
+                _ = try await db.collection("\(name)_statsList").addDocument(data: newData)
+            }
+
+            await fetchStats(name: name)
+
+        } catch {
+            self.errorMessage = "Could not update: \(error.localizedDescription)"
+        }
+    }
 }

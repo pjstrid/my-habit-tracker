@@ -44,7 +44,8 @@ struct ContentView: View {
                                 ForEach(habitsVM.habits) { habit in
                                     HabitListItemView(
                                         habit: habit,
-                                        habitsVM: habitsVM
+                                        habitsVM: habitsVM,
+                                        statsVM: statsVM
                                     )
                                 }
                                 .onDelete { offsets in

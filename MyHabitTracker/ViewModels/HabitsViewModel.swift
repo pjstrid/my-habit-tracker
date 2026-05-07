@@ -132,7 +132,7 @@ class HabitsViewModel {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        let newProgress = /*habit.progress +*/ updatedProgress
+        let newProgress = updatedProgress
 
         let reachedGoal = newProgress >= habit.goal
 

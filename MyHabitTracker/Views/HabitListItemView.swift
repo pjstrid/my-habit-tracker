@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct HabitListItemView: View {
-    
+
     let habit: Habit
-    
+
     @Bindable var habitsVM: HabitsViewModel
+    @Bindable var statsVM: StatsViewModel
 
     @State private var showingProgressSheet = false
     @State private var progressInput = ""
@@ -62,6 +63,11 @@ struct HabitListItemView: View {
                                     for: habit,
                                     updatedProgress: habit.goal
                                 )
+                            await statsVM.updateStatsObject(
+                                for: habit.name,
+                                progress: habit.goal,
+                                date: Date()
+                            )
                         }
                     } label: {
                         Image(
@@ -130,6 +136,12 @@ struct HabitListItemView: View {
                                 await habitsVM.updateProgress(
                                     for: habit,
                                     updatedProgress: progress
+                                )
+
+                                await statsVM.updateStatsObject(
+                                    for: habit.name,
+                                    progress: progress,
+                                    date: Date()
                                 )
                             }
 
