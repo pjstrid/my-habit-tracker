@@ -33,10 +33,15 @@ struct AddHabitView: View {
                     Section {
                         TextField("Habit", text: $newHabitName)
                             .onChange(of: newHabitName) { _, newValue in
-                                    newHabitName = newValue.replacingOccurrences(of: " ", with: "")
-                                }
+                                newHabitName = newValue.replacingOccurrences(
+                                    of: " ",
+                                    with: ""
+                                )
+                            }
+
                         TextField("Goal", text: $newHabitGoal)
                             .keyboardType(.numberPad)
+
                         TextField(
                             "Unit ('steps', 'pages', 'minutes')",
                             text: $newHabitUnit
@@ -55,17 +60,6 @@ struct AddHabitView: View {
                                         .padding(10)
                                 }
                             }
-                            .disabled(
-                                newHabitName.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                                    || newHabitGoal.trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    ).isEmpty || Int(newHabitGoal) == nil
-                                    || newHabitUnit.trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    ).isEmpty
-                            )
                             .buttonStyle(.glass)
                             .font(Font.title3.bold())
                             Spacer()
@@ -83,17 +77,42 @@ struct AddHabitView: View {
                 }
             }
         }
+        .alert(
+            "Something went wrong",
+            isPresented: Binding(
+                get: { habitsVM.errorMessage != nil },
+                set: {
+                    if !$0 {
+                        habitsVM.errorMessage = nil
+                    }
+                }
+            ),
+            presenting: habitsVM.errorMessage
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { message in
+            Text(message)
+        }
     }
 
     func saveNewHabit() async {
 
-        guard !newHabitName.isEmpty else { return }
-
-        guard let goalConverted = Int(newHabitGoal), goalConverted > 0 else {
+        guard
+            !newHabitName.trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty
+        else {
+            habitsVM.errorMessage = "Habit name cannot be empty"
             return
         }
 
-        guard !newHabitUnit.isEmpty else { return }
+        guard let goalConverted = Int(newHabitGoal), goalConverted > 0 else {
+            habitsVM.errorMessage = "Goal must be a valid number"
+            return
+        }
+
+        guard !newHabitUnit.isEmpty else {
+            habitsVM.errorMessage = "Habit unit cannot be empty"
+            return }
 
         await habitsVM.saveHabit(
             name: newHabitName,
@@ -103,7 +122,7 @@ struct AddHabitView: View {
 
         newHabitName = ""
         newHabitGoal = ""
-        newHabitUnit = ""
+       newHabitUnit = ""
 
         await reloadHabits()
 

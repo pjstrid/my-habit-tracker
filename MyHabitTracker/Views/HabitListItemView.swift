@@ -16,6 +16,8 @@ struct HabitListItemView: View {
     @State private var showingProgressSheet = false
     @State private var progressInput = ""
 
+    @State private var closeProgressSheet = false
+
     private var progressFraction: Double {
         guard habit.goal > 0 else { return 0 }
         return min(Double(habit.progress) / Double(habit.goal), 1.0)
@@ -58,15 +60,27 @@ struct HabitListItemView: View {
                     Button {
                         Task {
                             if habit.isCompletedToday {
-                                
-                                await habitsVM.toggleToday(for: habit, updatedProgress: 0)
-                                await habitsVM.updateStatsObject(for: habit, newProgress: 0)
+
+                                await habitsVM.toggleToday(
+                                    for: habit,
+                                    updatedProgress: 0
+                                )
+                                await habitsVM.updateStatsObject(
+                                    for: habit,
+                                    newProgress: 0
+                                )
                             } else {
-                                
-                                await habitsVM.toggleToday(for: habit, updatedProgress: habit.goal)
-                                await habitsVM.updateStatsObject(for: habit, newProgress: habit.goal)
+
+                                await habitsVM.toggleToday(
+                                    for: habit,
+                                    updatedProgress: habit.goal
+                                )
+                                await habitsVM.updateStatsObject(
+                                    for: habit,
+                                    newProgress: habit.goal
+                                )
                             }
-                            
+
                         }
                     } label: {
                         Image(
@@ -114,6 +128,7 @@ struct HabitListItemView: View {
                     endPoint: .topTrailing
                 )
                 .ignoresSafeArea()
+
                 VStack(spacing: 20) {
                     Text("Update progress on '\(habit.name)'")
                         .font(.title2)
@@ -131,20 +146,23 @@ struct HabitListItemView: View {
 
                     Button("Save") {
                         Task {
-                            if let progress = Int(progressInput) {
-                                await habitsVM.updateProgress(
-                                    for: habit,
-                                    updatedProgress: progress
-                                )
-
-                                await habitsVM.updateStatsObject(
-                                    for: habit,
-                                    newProgress: progress
-                                )
+                            guard let progress = Int(progressInput) else {
+                                habitsVM.errorMessage =
+                                    "New total progress must be a valid number"
+                                return
                             }
 
+                            await habitsVM.updateProgress(
+                                for: habit,
+                                updatedProgress: progress
+                            )
+                            await habitsVM.updateStatsObject(
+                                for: habit,
+                                newProgress: progress
+                            )
+
                             progressInput = ""
-                            showingProgressSheet = false
+                            closeProgressSheet = true
                         }
                     }
                     .buttonStyle(.glass)
@@ -154,10 +172,8 @@ struct HabitListItemView: View {
                     Spacer()
 
                     Button("Cancel") {
-                        Task {
-                            progressInput = ""
-                            showingProgressSheet = false
-                        }
+                        progressInput = ""
+                        closeProgressSheet = true
                     }
                     .buttonStyle(.glass)
                     .foregroundStyle(.red.opacity(0.8))
@@ -165,6 +181,23 @@ struct HabitListItemView: View {
                     .bold()
                 }
                 .padding()
+            }
+            .onChange(of: closeProgressSheet) { _, newValue in
+                if newValue {
+                    showingProgressSheet = false
+                }
+            }
+            .alert(
+                "Something went wrong",
+                isPresented: Binding(
+                    get: { habitsVM.errorMessage != nil },
+                    set: { if !$0 { habitsVM.errorMessage = nil } }
+                ),
+                presenting: habitsVM.errorMessage
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { message in
+                Text(message)
             }
         }
     }

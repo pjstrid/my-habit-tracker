@@ -16,23 +16,34 @@ struct StatsView: View {
     @State private var selectedListUnit = ""
 
     @Bindable var habitsVM: HabitsViewModel
-    
+
     enum StatsRange { case week, month }
     @State private var selectedRange: StatsRange = .week
-    
+
     private var weekData: [StatsObject] {
         guard let firstDate = selectedList.last?.date else { return [] }
 
         let calendar = Calendar.current
-        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: firstDate))!
+        let weekStart = calendar.date(
+            from: calendar.dateComponents(
+                [.yearForWeekOfYear, .weekOfYear],
+                from: firstDate
+            )
+        )!
 
         return (0..<7).map { offset in
-            let day = calendar.date(byAdding: .day, value: offset, to: weekStart)!
-            return selectedList.first(where: { calendar.isDate($0.date, inSameDayAs: day) })
+            let day = calendar.date(
+                byAdding: .day,
+                value: offset,
+                to: weekStart
+            )!
+            return selectedList.first(where: {
+                calendar.isDate($0.date, inSameDayAs: day)
+            })
                 ?? StatsObject(date: day, statsCount: 0)
         }
     }
-    
+
     private var monthData: [StatsObject] {
         guard let referenceDate = selectedList.last?.date else { return [] }
 
@@ -56,7 +67,7 @@ struct StatsView: View {
 
         return filled.sorted { $0.date < $1.date }
     }
-    
+
     private var filteredStats: [StatsObject] {
 
         switch selectedRange {
@@ -87,7 +98,8 @@ struct StatsView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(habitsVM.habits.map(\.name), id: \.self) { item in
+                        ForEach(habitsVM.habits.map(\.name), id: \.self) {
+                            item in
                             VStack(spacing: 4) {
                                 Text(item)
                                     .bold()
@@ -99,7 +111,11 @@ struct StatsView: View {
                                         withAnimation(.easeInOut) {
                                             selectedMenuItem = item
 
-                                            if let habit = habitsVM.habits.first(where: { $0.name == item }) {
+                                            if let habit = habitsVM.habits
+                                                .first(where: {
+                                                    $0.name == item
+                                                })
+                                            {
                                                 selectedList = habit.stats
                                                 selectedListGoal = habit.goal
                                                 selectedListUnit = habit.unit
@@ -131,13 +147,18 @@ struct StatsView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.green.opacity(0.2), lineWidth: 3)
                 )
-                
+
                 HStack {
                     Button("Week") { selectedRange = .week }
-                        .foregroundColor(selectedRange == .week ? .green.opacity(0.8) : .gray)
+                        .foregroundColor(
+                            selectedRange == .week ? .green.opacity(0.8) : .gray
+                        )
 
                     Button("Month") { selectedRange = .month }
-                        .foregroundColor(selectedRange == .month ? .green.opacity(0.8) : .gray)
+                        .foregroundColor(
+                            selectedRange == .month
+                                ? .green.opacity(0.8) : .gray
+                        )
                 }
                 .bold()
 
@@ -157,7 +178,6 @@ struct StatsView: View {
                 }
                 .frame(height: 200)
 
-
                 HStack {
                     Image(systemName: "line.diagonal")
                         .rotationEffect(Angle(degrees: 45))
@@ -173,13 +193,31 @@ struct StatsView: View {
                         HStack {
                             Text(statsObject.date, style: .date)
                             Spacer()
-                            Text("\(statsObject.statsCount) \(selectedListUnit)")
+                            Text(
+                                "\(statsObject.statsCount) \(selectedListUnit)"
+                            )
                             .bold()
                         }
                     }
                 }
             }
             .padding()
+        }
+        .alert(
+            "Something went wrong",
+            isPresented: Binding(
+                get: { habitsVM.errorMessage != nil },
+                set: {
+                    if !$0 {
+                        habitsVM.errorMessage = nil
+                    }
+                }
+            ),
+            presenting: habitsVM.errorMessage
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { message in
+            Text(message)
         }
     }
 }
