@@ -1,6 +1,6 @@
 📘 MyHabitTracker
 A clean and minimal habit‑tracking app built with SwiftUI.
-Create habits, track your daily progress, and view clear weekly and monthly statistics.
+Create habits, track your daily progress, and view your weekly and monthly stats.
 ---
 📱 Features
 * Add custom habits with goals and units
