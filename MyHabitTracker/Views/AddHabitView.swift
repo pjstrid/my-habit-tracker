@@ -15,7 +15,6 @@ struct AddHabitView: View {
     @State private var newHabitUnit = ""
 
     @Bindable var habitsVM: HabitsViewModel
-    @Bindable var statsVM: StatsViewModel
 
     var body: some View {
         NavigationStack {
@@ -101,12 +100,6 @@ struct AddHabitView: View {
             goal: goalConverted,
             unit: newHabitUnit
         )
-        
-//        await statsVM.createStatsList(
-//            name: newHabitName,
-//            unit: newHabitUnit,
-//            goal: goalConverted
-//        )
 
         newHabitName = ""
         newHabitGoal = ""

@@ -34,6 +34,13 @@ class HabitsViewModel {
                     (data["completedDates"] as? [Timestamp])?.map {
                         $0.dateValue()
                     } ?? []
+                
+                let statsArray = (data["stats"] as? [[String: Any]]) ?? []
+                let stats = statsArray.compactMap { dict -> StatsObject? in
+                    guard let timestamp = dict["date"] as? Timestamp,
+                          let count = dict["statsCount"] as? Int else { return nil }
+                    return StatsObject(date: timestamp.dateValue(), statsCount: count)
+                }
 
                 return Habit(
                     id: doc.documentID,
@@ -41,7 +48,9 @@ class HabitsViewModel {
                     goal: goal,
                     unit: unit,
                     completedDates: completedDates,
-                    progress: progress
+                    progress: progress,
+                    stats: stats
+
                 )
             }
 
@@ -60,6 +69,7 @@ class HabitsViewModel {
             "unit": unit,
             "completedDates": [],
             "progress": 0,
+            "stats": []
         ]
 
         do {
@@ -181,10 +191,10 @@ class HabitsViewModel {
 
         var updatedHabit = habit
 
-        // 1. Uppdatera progress
+        
         updatedHabit.progress = newProgress
 
-        // 2. Uppdatera completedDates
+        
         if newProgress >= habit.goal {
             if !updatedHabit.completedDates.contains(where: {
                 calendar.isDate($0, inSameDayAs: today)
@@ -197,7 +207,7 @@ class HabitsViewModel {
             }
         }
 
-        // 3. Uppdatera stats-listan
+        
         if let index = updatedHabit.stats.firstIndex(where: {
             calendar.isDate($0.date, inSameDayAs: today)
         }) {

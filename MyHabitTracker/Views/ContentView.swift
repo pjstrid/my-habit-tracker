@@ -13,7 +13,6 @@ struct ContentView: View {
     @State private var showStats = false
 
     @State var habitsVM = HabitsViewModel()
-    @State var statsVM = StatsViewModel()
 
     var body: some View {
 
@@ -45,7 +44,6 @@ struct ContentView: View {
                                     HabitListItemView(
                                         habit: habit,
                                         habitsVM: habitsVM,
-                                        statsVM: statsVM
                                     )
                                 }
                                 .onDelete { offsets in
@@ -78,13 +76,12 @@ struct ContentView: View {
                         AddHabitView(
                             isPresented: $showingAddHabitSheet,
                             habitsVM: habitsVM,
-                            statsVM: statsVM
                         )
                     }
                 }
             }
             .navigationDestination(isPresented: $showStats) {
-                StatsView(statsVM: statsVM, habitsVM: habitsVM)
+                StatsView(habitsVM: habitsVM)
             }
             .navigationTitle("My Habit Tracker")
             .task {
@@ -100,5 +97,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(habitsVM: HabitsViewModel(), statsVM: StatsViewModel())
+    ContentView(habitsVM: HabitsViewModel())
 }

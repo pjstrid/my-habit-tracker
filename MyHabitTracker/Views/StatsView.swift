@@ -15,8 +15,57 @@ struct StatsView: View {
     @State private var selectedListGoal = 0
     @State private var selectedListUnit = ""
 
-    @Bindable var statsVM: StatsViewModel
     @Bindable var habitsVM: HabitsViewModel
+    
+    enum StatsRange { case week, month }
+    @State private var selectedRange: StatsRange = .week
+    
+    private var weekData: [StatsObject] {
+        guard let firstDate = selectedList.last?.date else { return [] }
+
+        let calendar = Calendar.current
+        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: firstDate))!
+
+        return (0..<7).map { offset in
+            let day = calendar.date(byAdding: .day, value: offset, to: weekStart)!
+            return selectedList.first(where: { calendar.isDate($0.date, inSameDayAs: day) })
+                ?? StatsObject(date: day, statsCount: 0)
+        }
+    }
+    
+    private var monthData: [StatsObject] {
+        guard let referenceDate = selectedList.last?.date else { return [] }
+
+        let calendar = Calendar.current
+
+        let startOfMonth = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: referenceDate)
+        )!
+
+        let range = calendar.range(of: .day, in: .month, for: referenceDate)!
+        let numberOfDays = range.count
+
+        let allDays = (0..<numberOfDays).compactMap { offset -> Date in
+            calendar.date(byAdding: .day, value: offset, to: startOfMonth)!
+        }
+
+        let filled = allDays.map { day in
+            selectedList.first { calendar.isDate($0.date, inSameDayAs: day) }
+                ?? StatsObject(date: day, statsCount: 0)
+        }
+
+        return filled.sorted { $0.date < $1.date }
+    }
+    
+    private var filteredStats: [StatsObject] {
+
+        switch selectedRange {
+        case .week:
+            return weekData
+        case .month:
+            return monthData
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -51,7 +100,7 @@ struct StatsView: View {
                                             selectedMenuItem = item
 
                                             if let habit = habitsVM.habits.first(where: { $0.name == item }) {
-                                                selectedList = habit.stats.sorted { $0.date < $1.date }
+                                                selectedList = habit.stats
                                                 selectedListGoal = habit.goal
                                                 selectedListUnit = habit.unit
                                             }
@@ -82,9 +131,18 @@ struct StatsView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.green.opacity(0.2), lineWidth: 3)
                 )
+                
+                HStack {
+                    Button("Week") { selectedRange = .week }
+                        .foregroundColor(selectedRange == .week ? .green.opacity(0.8) : .gray)
+
+                    Button("Month") { selectedRange = .month }
+                        .foregroundColor(selectedRange == .month ? .green.opacity(0.8) : .gray)
+                }
+                .bold()
 
                 Chart {
-                    ForEach(selectedList) { statsObject in
+                    ForEach(filteredStats) { statsObject in
                         BarMark(
                             x: .value("Day", statsObject.date, unit: .day),
                             y: .value("Steps", statsObject.statsCount)
@@ -98,11 +156,7 @@ struct StatsView: View {
 
                 }
                 .frame(height: 200)
-                .chartXAxis {
-                    AxisMarks(values: selectedList.map { $0.date }) { date in
-                        AxisValueLabel()
-                    }
-                }
+
 
                 HStack {
                     Image(systemName: "line.diagonal")
@@ -115,7 +169,7 @@ struct StatsView: View {
                 }
 
                 List {
-                    ForEach(selectedList) { statsObject in
+                    ForEach(filteredStats) { statsObject in
                         HStack {
                             Text(statsObject.date, style: .date)
                             Spacer()
@@ -131,5 +185,5 @@ struct StatsView: View {
 }
 
 #Preview {
-    StatsView(statsVM: StatsViewModel(), habitsVM: HabitsViewModel())
+    StatsView(habitsVM: HabitsViewModel())
 }

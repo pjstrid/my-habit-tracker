@@ -12,7 +12,6 @@ struct HabitListItemView: View {
     let habit: Habit
 
     @Bindable var habitsVM: HabitsViewModel
-    @Bindable var statsVM: StatsViewModel
 
     @State private var showingProgressSheet = false
     @State private var progressInput = ""
@@ -58,15 +57,16 @@ struct HabitListItemView: View {
                     Spacer()
                     Button {
                         Task {
-                            await habitsVM
-                                .toggleToday(
-                                    for: habit,
-                                    updatedProgress: habit.goal
-                                )
-                            await habitsVM.updateStatsObject(
-                                for: habit,
-                                newProgress: habit.goal
-                            )
+                            if habit.isCompletedToday {
+                                
+                                await habitsVM.toggleToday(for: habit, updatedProgress: 0)
+                                await habitsVM.updateStatsObject(for: habit, newProgress: 0)
+                            } else {
+                                
+                                await habitsVM.toggleToday(for: habit, updatedProgress: habit.goal)
+                                await habitsVM.updateStatsObject(for: habit, newProgress: habit.goal)
+                            }
+                            
                         }
                     } label: {
                         Image(
