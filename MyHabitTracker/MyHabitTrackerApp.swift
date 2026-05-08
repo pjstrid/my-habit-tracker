@@ -18,6 +18,7 @@ struct MyHabitTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(habitsVM: HabitsViewModel())
+                .preferredColorScheme(.dark)
         }
     }
 }

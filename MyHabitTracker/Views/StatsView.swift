@@ -12,13 +12,23 @@ struct StatsView: View {
 
     @State private var selectedMenuItem = ""
     @State private var selectedList: [StatsObject] = []
-    @State private var selectedListGoal = 0
-    @State private var selectedListUnit = ""
 
     @Bindable var habitsVM: HabitsViewModel
 
     enum StatsRange { case week, month }
     @State private var selectedRange: StatsRange = .week
+    
+    private var selectedHabit: Habit? {
+        habitsVM.habits.first(where: { $0.name == selectedMenuItem })
+    }
+
+    private var selectedGoal: Int {
+        selectedHabit?.goal ?? 0
+    }
+
+    private var selectedUnit: String {
+        selectedHabit?.unit ?? ""
+    }
 
     private var weekData: [StatsObject] {
         guard let firstDate = selectedList.last?.date else { return [] }
@@ -117,8 +127,6 @@ struct StatsView: View {
                                                 })
                                             {
                                                 selectedList = habit.stats
-                                                selectedListGoal = habit.goal
-                                                selectedListUnit = habit.unit
                                             }
                                         }
                                     }
@@ -139,8 +147,6 @@ struct StatsView: View {
                     if let first = habitsVM.habits.first {
                         selectedMenuItem = first.name
                         selectedList = first.stats.sorted { $0.date < $1.date }
-                        selectedListGoal = first.goal
-                        selectedListUnit = first.unit
                     }
                 }
                 .overlay(
@@ -171,7 +177,7 @@ struct StatsView: View {
                         .foregroundStyle(Color.green.gradient)
                     }
 
-                    RuleMark(y: .value("Goal", selectedListGoal))
+                    RuleMark(y: .value("Goal", selectedGoal))
                         .foregroundStyle(Color.orange)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
 
@@ -183,7 +189,7 @@ struct StatsView: View {
                         .rotationEffect(Angle(degrees: 45))
                         .foregroundStyle(.orange)
 
-                    Text("Daily Goal: \(selectedListGoal) \(selectedListUnit)")
+                    Text("Daily Goal: \(selectedGoal) \(selectedUnit)")
                         .foregroundStyle(.secondary)
                         .fontDesign(.rounded)
                 }
@@ -194,7 +200,7 @@ struct StatsView: View {
                             Text(statsObject.date, style: .date)
                             Spacer()
                             Text(
-                                "\(statsObject.statsCount) \(selectedListUnit)"
+                                "\(statsObject.statsCount) \(selectedUnit)"
                             )
                             .bold()
                         }
@@ -220,8 +226,4 @@ struct StatsView: View {
             Text(message)
         }
     }
-}
-
-#Preview {
-    StatsView(habitsVM: HabitsViewModel())
 }

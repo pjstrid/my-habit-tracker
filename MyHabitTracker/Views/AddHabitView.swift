@@ -67,7 +67,7 @@ struct AddHabitView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .navigationTitle("Add new habit")
+                .navigationTitle("Add a new habit")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") {

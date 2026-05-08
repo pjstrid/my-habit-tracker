@@ -130,7 +130,10 @@ struct HabitListItemView: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: 20) {
-                    Text("Update progress on '\(habit.name)'")
+                    Text("Update progress on:")
+                        .font(.title2)
+                        .bold()
+                    Text(habit.name)
                         .font(.title2)
                         .bold()
 
@@ -149,6 +152,7 @@ struct HabitListItemView: View {
                             guard let progress = Int(progressInput) else {
                                 habitsVM.errorMessage =
                                     "New total progress must be a valid number"
+                                closeProgressSheet = false
                                 return
                             }
 
@@ -181,6 +185,7 @@ struct HabitListItemView: View {
                     .bold()
                 }
                 .padding()
+                .padding(.top, 20)
             }
             .onChange(of: closeProgressSheet) { _, newValue in
                 if newValue {
